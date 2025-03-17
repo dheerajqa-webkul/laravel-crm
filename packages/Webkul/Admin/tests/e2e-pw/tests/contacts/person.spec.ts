@@ -1,39 +1,36 @@
-import { test, expect } from '@playwright/test';
-import { createOrganization, generateCompanyName } from '../contacts/organization.spec'
+import { test, expect } from "../../setup";
+import { loginAsAdmin } from "../../utils/admin";
+import { generateFullName, generateEmail, generatePhoneNumber,createOrganization } from  "../../utils/faker";
 
-
-function generateName() {
-    const firstNames = ["John", "Jane", "Michael", "Emily", "David", "Sophia", "Daniel", "Olivia", "Liam", "Emma"];
-    return firstNames[Math.floor(Math.random() * firstNames.length)];
+function generateJobProfile() {
+    const jobProfiles = [
+        "Playwright Automation Tester",
+        "Software Engineer",
+        "Data Analyst",
+        "Project Manager",
+        "DevOps Engineer",
+        "QA Engineer",
+        "UI/UX Designer",
+        "Product Manager",
+        "Cybersecurity Analyst",
+        "Cloud Architect"
+    ];
+    const randomIndex = Math.floor(Math.random() * jobProfiles.length);
+    return jobProfiles[randomIndex];
 }
-
-
-function generateEmail(firstName) {
-    const domains = ["example.com", "testmail.com", "random.org", "fakemail.net"];
-    const sanitizedFirstName = firstName.toLowerCase(); // Convert to lowercase for email
-    return `${sanitizedFirstName}${Math.floor(Math.random() * 1000)}@${domains[Math.floor(Math.random() * domains.length)]}`;
-}
-
-function generatePhone() {
-    return `+91${Math.floor(6000000000 + Math.random() * 4000000000)}`; // Indian format
-}
-
-const firstName = generateName();
-const email = generateEmail(firstName);
-const phone = generatePhone();
-
 
 async function createPerson(page) {
-    const firstName = generateName();
-    const email = generateEmail(firstName);
-    const phone = generatePhone();
+    const Name = generateFullName();
+    const email = generateEmail();
+    const phone = generatePhoneNumber();
+    const Job = generateJobProfile();
 
     await page.getByRole('link', { name: 'Create Person' }).click();
 
-    await page.getByRole('textbox', { name: 'Name *' }).fill(firstName);
+    await page.getByRole('textbox', { name: 'Name *' }).fill(Name);
     await page.getByRole('textbox', { name: 'Emails *' }).fill(email);
     await page.getByRole('textbox', { name: 'Contact Numbers' }).fill(phone);
-    await page.getByRole('textbox', { name: 'Job Title' }).fill('Manager');
+    await page.getByRole('textbox', { name: 'Job Title' }).fill(Job);
 
     // Select an organization
     await page.locator('.relative > div > .relative').first().click();
@@ -46,82 +43,68 @@ async function createPerson(page) {
     // Validate person creation
     await expect(page.locator('#app')).toContainText(email);
 
-    return { firstName, email, phone };
+    return { Name, email, phone };
 }
 
 
-test('should be able to create person', async ({ page }) => {
+test('should be able to create person', async ({ adminPage }) => {
 
     /**
-     * Login to admin panel.
+     * admin login.
      */
-    await page.goto('http://192.168.15.192/laravel-crm-2.0/public/admin/login');
-    await page.getByRole('textbox', { name: 'Email Address' }).click();
-    await page.getByRole('textbox', { name: 'Email Address' }).fill('admin@example.com');
-    await page.getByRole('textbox', { name: 'Password' }).click();
-    await page.getByRole('textbox', { name: 'Password' }).fill('admin123');
-    await page.getByRole('button', { name: 'Sign In' }).click();
+    await loginAsAdmin(adminPage);
 
     /**
      * Create person.
      */
-    await page.goto('http://192.168.15.192/laravel-crm-2.0/public/admin/contacts/persons');
-    await createPerson(page);
+    await adminPage.goto('admin/contacts/persons');
+    await createPerson(adminPage);
 });
 
 
-test('should be able to assign a company to person', async ({ page }) => {
+test('should be able to assign a company to person', async ({ adminPage }) => {
+
     /**
-     * Login to admin panel.
+     * admin login.
      */
-    await page.goto('http://192.168.15.192/laravel-crm-2.0/public/admin/login');
-    await page.getByRole('textbox', { name: 'Email Address' }).click();
-    await page.getByRole('textbox', { name: 'Email Address' }).fill('admin@example.com');
-    await page.getByRole('textbox', { name: 'Password' }).click();
-    await page.getByRole('textbox', { name: 'Password' }).fill('admin123');
-    await page.getByRole('button', { name: 'Sign In' }).click();
+    await loginAsAdmin(adminPage);
+
      /**
      * Create Organization.
      */ 
-     await page.goto('http://192.168.15.192/laravel-crm-2.0/public/admin/contacts/organizations')
-    const companyName= await createOrganization(page);
+    const companyName= await createOrganization(adminPage);
     
      /**
      * Create person.
      */
-    await page.goto('http://192.168.15.192/laravel-crm-2.0/public/admin/contacts/persons');
-    await createPerson(page);
-    await page.locator('span.icon-edit').nth(1).click();
-    await page.locator('div').filter({ hasText: /^Click to add$/ }).nth(2).click();
-    await page.getByRole('textbox', { name: 'Search...' }).click();
-    await page.getByRole('textbox', { name: 'Search...' }).fill(companyName);
-    await page.getByRole('listitem').filter({ hasText: companyName }).locator('span').click();
-    await page.getByRole('button', { name: 'Save Person' }).click();
+    await adminPage.goto('admin/contacts/persons');
+    await createPerson(adminPage);
+    await adminPage.locator('span.icon-edit').first().click();
+    await adminPage.locator('div').filter({ hasText: /^Click to add$/ }).nth(2).click();
+    await adminPage.getByRole('textbox', { name: 'Search...' }).click();
+    await adminPage.getByRole('textbox', { name: 'Search...' }).fill(companyName);
+    await adminPage.getByRole('listitem').filter({ hasText: companyName }).locator('span').click();
+    await adminPage.getByRole('button', { name: 'Save Person' }).click();
    });
 
 
-test('should be able to delete person', async ({ page }) => {
+test('should be able to delete person', async ({ adminPage }) => {
 
     /**
-     * Login to admin panel.
+     * admin login.
      */
-    await page.goto('http://192.168.15.192/laravel-crm-2.0/public/admin/login');
-    await page.getByRole('textbox', { name: 'Email Address' }).click();
-    await page.getByRole('textbox', { name: 'Email Address' }).fill('admin@example.com');
-    await page.getByRole('textbox', { name: 'Password' }).click();
-    await page.getByRole('textbox', { name: 'Password' }).fill('admin123');
-    await page.getByRole('button', { name: 'Sign In' }).click();
+    await loginAsAdmin(adminPage);
 
     /**
      * Create person.
      */
-    await page.goto('http://192.168.15.192/laravel-crm-2.0/public/admin/contacts/persons');
-    await createPerson(page);
+    await adminPage.goto('admin/contacts/persons');
+    await createPerson(adminPage);
 
     /**
      * Delete person.
      */
-    await page.locator('span.icon-delete').nth(2).click();
-    await page.getByRole('button', { name: 'Agree', exact: true }).click();
-    await expect(page.locator('#app')).toContainText('Success');
+    await adminPage.locator('span.icon-delete').nth(2).click();
+    await adminPage.getByRole('button', { name: 'Agree', exact: true }).click();
+    await expect(adminPage.locator('#app')).toContainText('Success');
 });

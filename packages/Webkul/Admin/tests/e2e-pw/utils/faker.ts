@@ -352,6 +352,68 @@ function generateDate(): string {
     return randomDate.toISOString().split('T')[0];
 }
 
+/**
+ * Function to generate a random company name
+ */
+function generateCompanyName() {
+    const prefixes = [
+        "Tech", "Software", "Innovate", "NextGen", "Cloud", "AI", "Cyber", "Digital",
+        "Technical", "Product", "Organization", "Vendor", "Rock-on", "Super", "Quantum",
+        "Neural", "Hyper", "Ultra", "Smart", "Future", "Mega", "Omni", "Virtual", "Dynamic",
+        "Secure", "Data", "Meta", "Nano", "Robo", "Infinity", "Vision", "Intelli", "Strato",
+        "Blue", "Green", "Red", "White", "Black", "Deep", "Elite", "Prime", "Titan", "Nova",
+        "Storm", "Lightning", "Vertex", "Pioneer", "Omnis", "Synergy", "Core", "Nexus"
+    ];
+    const suffixes = [
+        "Solutions", "Systems", "Pvt Ltd", "Technologies", "Enterprises", "Labs", "Networks",
+        "Corporation", "Group", "Ventures", "Holdings", "Consulting", "Industries", "Analytics",
+        "Innovations", "Services", "Softwares", "Developers", "AI", "Cloud", "Security", "Dynamics",
+        "Technica", "Data", "Infotech", "Research", "Automation", "Synergy", "Strategies", "Platform",
+        "Operations", "Logistics", "Infrastructure", "Management", "Digital", "Interactive",
+        "Vision", "Connect", "Smart", "Solutions Inc", "Partners", "Tech Ltd", "Info Systems",
+        "Growth", "Intelligence", "RoboCorp", "Edge", "Enterprise", "Global", "Power", "NextGen",
+        "Creative"
+    ];
+    return `${prefixes[Math.floor(Math.random() * prefixes.length)]} ${suffixes[Math.floor(Math.random() * suffixes.length)]}`;
+}
+
+/**
+ * Function to automate organization creation
+ */
+async function createOrganization(page) {
+    const companyName = generateCompanyName();
+
+    /**
+     * Click on "Create Organization" button
+     */
+    await page.goto('admin/contacts/organizations');
+    await page.getByRole('link', { name: 'Create Organization' }).click();
+
+    /**
+     * Fill in organization details
+     */
+    await page.getByRole('textbox', { name: 'Name *' }).fill(companyName);
+    await page.locator('textarea[name="address\\[address\\]"]').fill('ARV Park');
+    await page.getByRole('combobox').selectOption('IN');
+    await page.locator('select[name="address\\[state\\]"]').selectOption('DL');
+    await page.getByRole('textbox', { name: 'City' }).fill('Delhi');
+    await page.getByRole('textbox', { name: 'Postcode' }).fill('123456');
+
+    /** 
+     * Click to add extra details
+     */
+    await page.locator('div').filter({ hasText: /^Click to add$/ }).nth(2).click();
+    await page.getByRole('textbox', { name: 'Search...' }).fill('exampl');
+    await page.getByRole('listitem').filter({ hasText: 'Example' }).click();
+
+    /** 
+     * Click on "Save Organization"
+     */
+    await page.getByRole('button', { name: 'Save Organization' }).click();
+    // await expect(page.getByText(companyName)).toBeVisible();
+    return companyName;
+}
+
 export {
     generateName,
     generateFirstName,
@@ -366,5 +428,7 @@ export {
     generateHostname,
     randomElement,
     getImageFile,
-    generateDate
+    generateDate,
+    createOrganization,
+    generateCompanyName,
 };

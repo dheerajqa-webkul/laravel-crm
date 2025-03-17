@@ -1,8 +1,10 @@
 import { test, expect } from "../setup";
+import { loginAsAdmin } from "../utils/admin";
 import { generateName, generateSKU, generateDescription } from '../utils/faker';
 
 test.describe("product management", () => {
     test("should create a product", async ({ adminPage }) => {
+        
         /**
          * Go to the product listing page.
          */
@@ -47,6 +49,7 @@ test.describe("product management", () => {
     });
 
     test('should delete a product', async ({ adminPage }) => {
+        await loginAsAdmin(adminPage);
          /**
          * Go to the product listing page.
          */

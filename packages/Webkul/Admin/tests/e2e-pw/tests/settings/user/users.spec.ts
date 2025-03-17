@@ -53,6 +53,7 @@ test.describe("user management", () => {
     });
 
     test("should edit a users", async ({ adminPage }) => {
+
         /**
          * Generating new name and email for the user.
          */
@@ -89,6 +90,7 @@ test.describe("user management", () => {
     });
 
     test("should delete a user", async ({ adminPage }) => {
+        
         /**
          * Reaching to the user listing page.
          */
